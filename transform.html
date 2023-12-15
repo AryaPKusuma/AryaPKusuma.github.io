@@ -1,0 +1,168 @@
+<html>
+  <head>
+    <script src="https://www.lactame.com/lib/image-js/0.21.2/image.min.js"></script>
+    <title>Transform</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Citra Digital</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link " aria-current="page" href="filter.html">Filter</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="edgedetection.html">Edge Detection</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="zoom.html">Zoom</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="transform.html">Transform</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Enchance
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="denoising.html">Noise Reduction (Median Blur)</a></li>
+                <li><a class="dropdown-item" href="imagejsdenoise.html">Noise Reduction (Median Filter)</a></li>
+                <li><a class="dropdown-item" href="equalization.html">Equalization</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Arithmetic
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="addition.html">Image Addition</a></li>
+                <li><a class="dropdown-item" href="subtraction.html">Image Subtraction</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="px-4 py-5 mt-3 text-center">
+      <h1 class="display-5 fw-bold">Transform</h1>
+    </div>
+
+    <div class="container mt-5">
+      <input class="form-control" accept="image/png, image/jpeg, image/jpg, image/gif" name="file" type="file" id="fileInput">
+      Rotate
+      <label class="form-label mt-3" for="brightnessRange"><span id="rotatelabel"></span>deg</label>
+      <div class="range">
+        <input type="range" class="form-range" min="0" max="360" id="rotate"/>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
+        <label class="form-check-label" for="inlineCheckbox1">Flip Horizontal</label>
+      </div>
+      <div class="form-check form-check-inline mt-2 mb-2">
+        <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">
+        <label class="form-check-label" for="inlineCheckbox2">Flip Vertical</label>
+      </div>
+      <br>
+      Translate
+      <div class="input-group mb-3">
+        <span class="input-group-text">X</span>
+        <input id="inputX" type="text" class="form-control" aria-label="Dollar amount (with dot and two decimal places)">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text">Y</span>
+        <input id="inputY" type="text" class="form-control" aria-label="Dollar amount (with dot and two decimal places)">
+      </div>
+      <div class="m-4">
+        <button id="convert" class="btn btn-primary text-center">Process</button>
+        <button id="download" class="btn btn-primary text-center">Download</button>
+      </div>
+      <div>
+        <img id="color" style="width: 800px;"/>
+      </div>
+      <div>
+        <img id="result" style="width: 800px; display: none;"/>
+      </div>
+      <canvas id="canvasOutput" style="border: 1px solid;"></canvas>
+    </div>
+
+    <script>
+      const rotateRange = document.getElementById('rotate'),
+        rotateLabel = document.getElementById('rotatelabel'),
+        flipH = document.getElementById('inlineCheckbox1'),
+        flipV = document.getElementById('inlineCheckbox2'),
+        result = document.getElementById('result'),
+        btnDownloads = document.getElementById('download'),
+        inputX = document.getElementById('inputX'),
+        inputY = document.getElementById('inputY');
+
+      let rotate = 0, translateX = 0, translateY = 0;
+        
+      document.getElementById('fileInput').addEventListener('change', function(e) {
+        let file = e.target.files[0];
+        document.getElementById('color').src = URL.createObjectURL(file);
+      });
+        
+      rotateRange.addEventListener('input', function(e) {
+        rotateLabel.innerHTML = e.target.value;
+        rotate = parseInt(e.target.value);
+      });
+
+      inputX.addEventListener('input', function(e) {
+        translateX = parseInt(e.target.value);
+        console.log(translateX);
+      });
+
+      inputY.addEventListener('input', function(e) {
+        translateY = parseInt(e.target.value);
+        console.log(translateY);
+      });
+      async function process() {
+        let image = await IJS.Image.load(document.getElementById('color').src);
+
+        let grey = image
+          .rotate(rotate);
+        if (flipH.checked) {
+          grey = image
+          .flipX()
+          .rotate(rotate);
+        } else if (flipV.checked) {
+          grey = image
+          .flipY()
+          .rotate(rotate);;
+        } else if (flipH.checked && flipV.checked) {
+          grey = image.flipX().flipY().rotate(rotate);
+        }
+        
+        document.getElementById('result').src = grey.toDataURL();
+
+      }
+
+      result.onload = function() {
+        const canvas = document.getElementById('canvasOutput');
+        const ctx = canvas.getContext('2d');
+        canvas.width = result.width;
+        canvas.height = result.height;
+        ctx.translate(translateX, translateY);
+        ctx.drawImage(result, 0, 0, canvas.width, canvas.height);
+      }
+
+      btnDownloads.addEventListener('click', function() {
+        let link = document.createElement('a');
+        link.download = 'image.png';
+        link.href = document.getElementById('canvasOutput').toDataURL();
+        link.click();
+      });
+
+      document.getElementById('convert').addEventListener('click', process);
+    </script>
+  </body>
+</html>

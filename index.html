@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Zooming with OpenCV.js</title>
+  <script async src="https://docs.opencv.org/master/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</head>
+<body>
+
+<input type="file" id="fileInput" accept="image/*">
+<canvas id="canvas" style="border:1px solid #000;"></canvas>
+
+<script>
+  let src;
+  let dst;
+
+  function onOpenCvReady() {
+    // Load an image from file input
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          // Create an image element
+          const img = new Image();
+          img.onload = () => {
+            zoomImage(img, 2);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+
+  function zoomImage(img, zoomFactor) {
+    // Create a canvas for the original image
+    const canvasOriginal = document.createElement('canvas');
+    canvasOriginal.width = img.width;
+    canvasOriginal.height = img.height;
+    const ctxOriginal = canvasOriginal.getContext('2d');
+    ctxOriginal.drawImage(img, 0, 0);
+
+    const canvasZoomed = document.getElementById('canvas');
+    const ctxZoomed = canvasZoomed.getContext('2d');
+    canvasZoomed.width = img.width * zoomFactor;
+    canvasZoomed.height = img.height * zoomFactor;
+
+    src = cv.imread(canvasOriginal);
+    dst = new cv.Mat();
+    cv.resize(src, dst, new cv.Size(), zoomFactor, zoomFactor, cv.INTER_LINEAR);
+
+    cv.imshow(canvasZoomed, dst);
+
+    src.delete();
+    dst.delete();
+  }
+</script>
+
+</body>
+</html>
